@@ -22,6 +22,10 @@ enum MapCell {
 
     public static MapCell getTile(String s) {
         switch (s) {
+            case "#":
+                return VOID;
+            case ".":
+                return NEATURAL;
             case "O":
                 return CAPTURED_A;
             case "o":
@@ -51,12 +55,15 @@ class Point {
     }
 }
 
-class Unit {
-
+class BaseUnit {
     int owner;
+    Point point;
+}
+
+class Unit extends BaseUnit {
+
     int unitId;
     int level;
-    Point point;
 
     public Unit(int owner, int unitId, int level, Point point) {
         this.owner = owner;
@@ -76,10 +83,9 @@ class Unit {
     }
 }
 
-class Building {
-    int owner;
+class Building extends BaseUnit {
+
     int buildingType;
-    Point point;
 
     public Building(int owner, int buildingType, Point point) {
         this.owner = owner;
@@ -106,6 +112,7 @@ class Player {
     private static ArrayList<Unit> myArmy;
     private static ArrayList<Unit> opponentArmy;
 
+    private static ArrayList<Building> opponentBuildings;
     private static ArrayList<Building> myBuildings;
 
     private static String enemyCellType;
@@ -128,19 +135,14 @@ class Player {
         }
 
         // game loop
+        map = new MapCell[12][12];
         while (true) {
 
             readEconomy();
             readMap();
             readBuildings();
             readArmies();
-
-
-
-            /*
-            Train to the closest point to the enemy HQ
-            army: move to the cloeset gray.
-             */
+            
             output = new StringBuilder();
             train();
             orderArmy();
@@ -164,6 +166,7 @@ class Player {
     private static void readBuildings() {
         int buildingCount = in.nextInt();
         myBuildings = new ArrayList<>();
+        opponentBuildings = new ArrayList<>();
         for (int i = 0; i < buildingCount; i++) {
             int owner = in.nextInt();
             int buildingType = in.nextInt();
@@ -199,32 +202,11 @@ class Player {
 
     private static void readMap() {
         System.err.println("MAP");
-        map = new MapCell[12][12];
         for (int i = 0; i < 12; i++) {
             String line = in.next();
             System.err.println(line);
-            char[] chars = line.toCharArray();
-            for (int j = 0; j < chars.length; j++) {
-                switch (chars[j]) {
-                    case '#':
-                        map[i][j] = MapCell.VOID;
-                        break;
-                    case '.':
-                        map[i][j] = MapCell.NEATURAL;
-                        break;
-                    case 'O':
-                        map[i][j] = MapCell.CAPTURED_A;
-                        break;
-                    case 'X':
-                        map[i][j] = MapCell.CAPTURED_B;
-                        break;
-                    case 'o':
-                        map[i][j] = MapCell.INACTIVE_A;
-                        break;
-                    case 'x':
-                        map[i][j] = MapCell.INACTIVE_B;
-                        break;
-                }
+            for (int j = 0; j < line.length(); j++) {
+                map[i][j] = MapCell.getTile(String.valueOf(line.charAt(j)));
             }
         }
         System.err.println();
